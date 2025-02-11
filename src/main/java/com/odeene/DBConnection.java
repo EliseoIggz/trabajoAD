@@ -1,9 +1,6 @@
 package com.odeene;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class DBConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/meteobd";
@@ -49,4 +46,18 @@ public class DBConnection {
             throw e;
         }
     }
+
+    public static boolean existenDatosParaFechaYCiudad(String dia, String ciudad) throws SQLException {
+        String query = "SELECT COUNT(*) FROM prevision WHERE dia = ? AND ciudad = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, dia);
+            stmt.setString(2, ciudad);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0; // Si la cuenta es mayor que 0, ya existen datos
+            }
+        }
+        return false;
+    }
+
 }
