@@ -1,6 +1,7 @@
 package com.odeene;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 public class DBConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/meteobd";
@@ -58,6 +59,29 @@ public class DBConnection {
             }
         }
         return false;
+    }
+
+    public static ArrayList<String> consultaDePrevisionPorCiudadYFranja(String ciudad, String dato) throws SQLException {
+        String query = "SELECT franja_horaria, "+dato+" FROM prevision WHERE ciudad = ?";
+        ArrayList<String> resultado = new ArrayList<>();
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, ciudad);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                ResultSetMetaData metaData = rs.getMetaData();
+                int columnas = metaData.getColumnCount();
+
+                while (rs.next()) {
+                    StringBuilder fila = new StringBuilder();
+                    for (int i = 1; i <= columnas; i++) {
+                        fila.append(rs.getString(i)).append(" | ");
+                    }
+                    resultado.add(fila.toString());
+                }
+            }
+        }
+        return resultado;
     }
 
 }

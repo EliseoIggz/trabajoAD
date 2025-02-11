@@ -37,6 +37,8 @@ public class Main {
         listaDeParametros.add("Humedad");
         listaDeParametros.add("Nubosidad");
 
+        String[] tipoDeDato = {"estado_del_cielo", "temperatura", "probabilidad_de_lluvias", "viento", "humedad", "cobertura_nubosa"};
+
         // Cliente HTTP
         OkHttpClient client = new OkHttpClient();
         City[] cities = {
@@ -88,12 +90,12 @@ public class Main {
                     boolean bucle2 = true;
                     do {
                         int num = 0;
-                        System.out.println("Escoge la ciudad sobre la que quieres consultar/modificar datos");
+                        System.out.println("\nEscoge la ciudad sobre la que quieres consultar/modificar datos");
                         for (City ciudad: cities) {
                             num++;
                             System.out.println(num + ") " + ciudad.getName());
                         }
-                        int ciudad = scInt.nextInt(); //Indice para luego usar al recorrer el array de ciudades
+                        int ciudadInt = scInt.nextInt(); //Indice para luego usar al recorrer el array de ciudades////////////////////
                         System.out.println("\n1. Consultar datos");
                         System.out.println("2. Modificar datos");
                         System.out.println("3. Volver");
@@ -108,9 +110,9 @@ public class Main {
                                     contador++;
                                     System.out.println(contador + ") " + dato);
                                 }
-                                int parametro = scInt.nextInt();
-
-
+                                int parametro = scInt.nextInt(); // Indice del parametro ////////////////////////////////////
+                                ArrayList<String> resultadoConsulta = DBConnection.consultaDePrevisionPorCiudadYFranja(cities[ciudadInt-1].getName(), tipoDeDato[parametro-1]);
+                                System.out.println(resultadoConsulta);
                                 break;
                             // Modificar
                             case 2:
