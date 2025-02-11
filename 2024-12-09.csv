@@ -1,0 +1,8 @@
+"Ciudad","Estado del cielo","Temperatura (C)","Probabilidad de lluvias","Viento","Humedad","Porcentaje de nubosidad"
+"A Coruna","SUNNY,SUNNY,PARTLY_CLOUDY","[10.0, 10.0, 10.0]","[0, 0, 0]","[fuerza= 7.1 - direction= 57.56, fuerza= 9.87 - direction= 59.18, fuerza= 7.7 - direction= 18.7]","[92.89, 97.54, 98.55]","[6.62, 0.0, 48.26]"
+"Lugo","PARTLY_CLOUDY,SUNNY,PARTLY_CLOUDY","[6.0, 5.0, 5.0]","[0, 0, 0]","[fuerza= 6.8 - direction= 350.0, fuerza= 6.65 - direction= 350.03, fuerza= 6.26 - direction= 329.84]","[96.47, 99.18, 100.0]","[30.56, 6.72, 21.07]"
+"Ourense","SUNNY,SUNNY,SUNNY","[6.0, 6.0, 5.0]","[0, 0, 0]","[fuerza= 1.97 - direction= 297.18, fuerza= 2.21 - direction= 263.41, fuerza= 2.61 - direction= 307.72]","[88.5, 92.93, 96.21]","[0.0, 6.16, 0.0]"
+"Pontevedra","SUNNY,SUNNY,SUNNY","[8.0, 8.0, 8.0]","[0, 0, 0]","[fuerza= 4.18 - direction= 350.77, fuerza= 13.0 - direction= 3.17, fuerza= 8.04 - direction= 3.83]","[94.92, 96.75, 98.35]","[0.0, 0.0, 0.0]"
+"Vigo","SUNNY,SUNNY,SUNNY","[7.0, 7.0, 6.0]","[0, 0, 0]","[fuerza= 3.44 - direction= 53.0, fuerza= 1.94 - direction= 7.44, fuerza= 5.26 - direction= 13.83]","[76.84, 78.72, 79.59]","[0.0, 0.0, 0.0]"
+"Santiago de Compostela","PARTLY_CLOUDY,SUNNY,SUNNY","[7.0, 7.0, 7.0]","[0, 0, 0]","[fuerza= 8.12 - direction= 17.92, fuerza= 11.32 - direction= 25.63, fuerza= 15.95 - direction= 12.37]","[90.75, 91.66, 91.71]","[24.67, 0.0, 0.0]"
+"Ferrol","PARTLY_CLOUDY,SUNNY,SHOWERS","[11.0, 10.0, 10.0]","[0, 0, 0]","[fuerza= 14.41 - direction= 34.31, fuerza= 8.41 - direction= 27.92, fuerza= 9.41 - direction= 8.27]","[91.68, 97.43, 94.79]","[11.86, 0.0, 55.68]"

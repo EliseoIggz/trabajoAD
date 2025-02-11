@@ -9,6 +9,7 @@ public class WeatherData {
     private List<Wind> wind;
     private List<Double> relative_humidity;
     private List<Double> cloud_area_fraction;
+    
     public WeatherData(List<String> sky_state, List<Double> temperature, List<Integer> precipitation_amount,
             List<Wind> wind, List<Double> relative_humidity, List<Double> cloud_area_fraction) {
         this.sky_state = sky_state;

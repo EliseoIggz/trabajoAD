@@ -21,7 +21,7 @@ public class Wind {
     }
     @Override
     public String toString() {
-        return "fuerza= " + value + " - direction= " + direction;
+        return "fuerza= " + value + " - direccion= " + direction;
     }
 
 }
