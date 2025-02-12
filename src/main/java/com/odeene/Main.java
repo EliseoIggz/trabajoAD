@@ -1,8 +1,5 @@
 package com.odeene;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +7,6 @@ import java.util.Scanner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opencsv.CSVWriter;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -18,7 +14,7 @@ import okhttp3.Response;
 
 public class Main {
     static String diaActual;
-    static int[] indices = {6, 14, 22};
+    static int[] indices = {6, 14, 22}; //Indices para coger las franjas, representan las 7, 15, y 23 (MAÑANA,TARDE,NOCHE)
 
     public static void main(String[] args) throws SQLException {                                                //MAIN///////////////////////////////////////
         DBConnection.conectarBD(); // Conectamos con la base
@@ -57,8 +53,6 @@ public class Main {
             .url(url +city.getLongitude()+ "," + city.getLatitude() + "&variables=sky_state,temperature,precipitation_amount,wind,relative_humidity,cloud_area_fraction&API_KEY=" + API_KEY)
             .build();
 
-            //System.out.println("\n" + city.getName());
-
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful() && response.body() != null) {
                     // Procesar la respuesta JSON
@@ -74,12 +68,14 @@ public class Main {
 
         int opcion;
         boolean bucle = true;
+        // Hay un escaner para enteros y otro para strings para evotar errores de buffer
         Scanner scInt = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
 
         do {
             System.out.println("\nMENU");
             System.out.println("1. Guardar pronostico en la BD (Escoger al ejecutar el programa por primera vez)");
-            System.out.println("2.Mostrar ciudades disponibles");
+            System.out.println("2. Mostrar ciudades disponibles");
             System.out.println("3. Salir");
             opcion = scInt.nextInt();
             switch(opcion){
@@ -95,7 +91,7 @@ public class Main {
                             num++;
                             System.out.println(num + ") " + ciudad.getName());
                         }
-                        int ciudadInt = scInt.nextInt(); //Indice para luego usar al recorrer el array de ciudades////////////////////
+                        int ciudadInt = scInt.nextInt(); //Indice para luego usar al recorrer el array de ciudades
                         System.out.println("\n1. Consultar datos");
                         System.out.println("2. Modificar datos");
                         System.out.println("3. Volver");
@@ -110,12 +106,39 @@ public class Main {
                                     contador++;
                                     System.out.println(contador + ") " + dato);
                                 }
-                                int parametro = scInt.nextInt(); // Indice del parametro ////////////////////////////////////
+                                int parametro = scInt.nextInt(); // Indice del parametro
                                 ArrayList<String> resultadoConsulta = DBConnection.consultaDePrevisionPorCiudadYFranja(cities[ciudadInt-1].getName(), tipoDeDato[parametro-1]);
-                                System.out.println(resultadoConsulta);
+                                System.out.println(imprimirFormateado(resultadoConsulta));
                                 break;
                             // Modificar
                             case 2:
+                                contador = 0;
+                                for (String dato : listaDeParametros) {
+                                    contador++;
+                                    System.out.println(contador + ") " + dato);
+                                }
+                                parametro = scInt.nextInt(); // Indice del parámetro a modificar
+
+                                // Consultar y mostrar datos actuales
+                                resultadoConsulta = DBConnection.consultaDePrevisionPorCiudadYFranja(cities[ciudadInt-1].getName(), tipoDeDato[parametro-1]);
+                                System.out.println("Datos actuales:");
+                                for (String fila : resultadoConsulta) {
+                                    System.out.println(fila);
+                                }
+
+                                // Preguntar si desea modificar
+                                System.out.println("Introduce el nuevo valor para " + listaDeParametros.get(parametro - 1) + " o escribe 'cancelar' para salir:");
+                                scInt.nextLine(); // Limpiar buffer
+                                String nuevoValor = sc.nextLine();
+                                System.out.println("Introduce la franja(MAÑANA, TARDE, NOCHE): ");
+                                String franja = sc.nextLine();
+
+                                if (!nuevoValor.equalsIgnoreCase("cancelar")) {
+                                    DBConnection.modificarDatodePrevision(cities[ciudadInt-1].getName(), tipoDeDato[parametro-1], franja, nuevoValor);
+                                    System.out.println("Dato actualizado correctamente.");
+                                } else {
+                                    System.out.println("Modificación cancelada.");
+                                }
                                 break;
                             // Volver
                             case 3:
@@ -144,7 +167,6 @@ public class Main {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(jsonResponse);
 
-
             // Obtener el primer día del pronóstico
             JsonNode firstDay = root.at("/features/0/properties/days/1");
             if (firstDay.isMissingNode()) {
@@ -152,20 +174,13 @@ public class Main {
                 return;
             }
             diaActual = firstDay.findValue("timeInstant").asText().split("T")[0];
-            //System.out.println("\nDia: " + diaActual);
 
             // Obtener los valores de estado del cielo (sky_state)
             List<JsonNode> skyStateNode = firstDay.path("variables").get(0).findValues("value");
             if (skyStateNode != null) {
-                //System.out.println("Estado del cielo:");
-                /*for (JsonNode valueNode : skyStateNode) {
-                    System.out.println(valueNode.asText());
-                    sky_state.add(valueNode.asText());
-                }*/
                 for (int index : indices) {
                     if (index < skyStateNode.size()) { // Verificar que el índice no exceda el tamaño del array
                         JsonNode valueNode = skyStateNode.get(index);
-                        //System.out.println(valueNode.asText());
                         sky_state.add(valueNode.asText());
                     }
                 }
@@ -176,15 +191,9 @@ public class Main {
             // Obtener los valores de temperatura
             List<JsonNode> temperatureNode = firstDay.path("variables").get(1).findValues("value");
             if (temperatureNode != null) {
-                //System.out.println("\nTemperatura:");
-                /*for (JsonNode valueNode : temperatureNode) {
-                    System.out.println(valueNode.asDouble() + " C");
-                    temperature.add(valueNode.asDouble());
-                }*/
                 for (int index : indices) {
                     if (index < temperatureNode.size()) { // Evitar IndexOutOfBoundsException
                         JsonNode valueNode = temperatureNode.get(index);
-                        //System.out.println(valueNode.asDouble() + " C");
                         temperature.add(valueNode.asDouble());
                     }
                 }
@@ -195,15 +204,9 @@ public class Main {
             // Obtener los valores de lluvias
             List<JsonNode> precipitationAmountNode = firstDay.path("variables").get(2).findValues("value");
             if (precipitationAmountNode != null) {
-                //System.out.println("\nProbabilidad de lluvias:");
-                /*for (JsonNode valueNode : precipitationAmountNode) {
-                    System.out.println(valueNode.asInt() + "%");
-                    precipitation_amount.add(valueNode.asInt());
-                }*/
                 for (int index : indices) {
                     if (index < precipitationAmountNode.size()) { // Evitar IndexOutOfBoundsException
                         JsonNode valueNode = precipitationAmountNode.get(index);
-                        //System.out.println(valueNode.asInt() + "%");
                         precipitation_amount.add(valueNode.asInt());
                     }
                 }
@@ -215,20 +218,10 @@ public class Main {
             List<JsonNode> windNode = firstDay.path("variables").get(3).findValues("moduleValue");
             List<JsonNode> windDirectionNode = firstDay.path("variables").get(3).findValues("directionValue");
             if (windNode != null && windDirectionNode != null) {
-                //System.out.println("\nViento:");
-                /*for (int i = 0; i < windNode.size(); i++) {
-                    System.out.println(windNode.get(i).asDouble() + "kmh");
-                    System.out.println(windDirectionNode.get(i).asDouble() + "->");
-                    wind.add(new Wind(windNode.get(i).asDouble(), windDirectionNode.get(i).asDouble()));
-                }*/
                 for (int index : indices) {
                     if (index < windNode.size() && index < windDirectionNode.size()) { // Evitar IndexOutOfBoundsException
                         double windSpeed = windNode.get(index).asDouble();
                         double windDirection = windDirectionNode.get(index).asDouble();
-
-                        //System.out.println(windSpeed + " km/h");
-                        //System.out.println(windDirection + " ->");
-
                         wind.add(new Wind(windSpeed, windDirection));
                     }
                 }
@@ -239,15 +232,9 @@ public class Main {
             // Obtener los valores de humedad
             List<JsonNode> relativeHumidityNode = firstDay.path("variables").get(4).findValues("value");
             if (relativeHumidityNode != null) {
-                //System.out.println("\nHumedad:");
-                /*for (JsonNode valueNode : relativeHumidityNode) {
-                    System.out.println(valueNode.asDouble() + "%");
-                    relative_humidity.add(valueNode.asDouble());
-                }*/
                 for (int index : indices) {
                     if (index < relativeHumidityNode.size()) { // Evitar IndexOutOfBoundsException
                         JsonNode valueNode = relativeHumidityNode.get(index);
-                        //System.out.println(valueNode.asDouble() + "%");
                         relative_humidity.add(valueNode.asDouble());
                     }
                 }
@@ -258,15 +245,9 @@ public class Main {
             // Obtener los valores de cobertura nubosa
             List<JsonNode> cloudAreaFractionNode = firstDay.path("variables").get(5).findValues("value");
             if (cloudAreaFractionNode != null) {
-                //System.out.println("\nCobertura nubosa:");
-                /*for (JsonNode valueNode : cloudAreaFractionNode) {
-                    System.out.println(valueNode.asDouble() + "%");
-                    cloud_area_fraction.add(valueNode.asDouble());
-                }*/
                 for (int index : indices) {
                     if (index < cloudAreaFractionNode.size()) { // Evitar IndexOutOfBoundsException
                         JsonNode valueNode = cloudAreaFractionNode.get(index);
-                        //System.out.println(valueNode.asDouble() + "%");
                         cloud_area_fraction.add(valueNode.asDouble());
                     }
                 }
@@ -283,7 +264,6 @@ public class Main {
         for (int i = 0; i < cities.length; i++) {
             // Verificar si ya existen datos para la ciudad y el día actual
             boolean datosExistentes = DBConnection.existenDatosParaFechaYCiudad(diaActual, cities[i].getName());
-
             if (!datosExistentes) {
                 // Recorremos las franjas horarias para la ciudad actual
                 for (int j = 0; j < 3; j++) {
@@ -293,7 +273,6 @@ public class Main {
                     String viento = weatherDataArray.get(3).getWind().get(j).toString();
                     String humedad = weatherDataArray.get(4).getRelative_humidity().get(j).toString();
                     String nubosidad = weatherDataArray.get(5).getCloud_area_fraction().get(j).toString();
-
                     // Determina la franja horaria en función del índice j
                     String franjaHoraria = "";
                     switch (j) {
@@ -307,7 +286,6 @@ public class Main {
                             franjaHoraria = "NOCHE";
                             break;
                     }
-
                     // Insertar los datos para la ciudad y la franja horaria correspondiente
                     DBConnection.insertarDatos(cities[i].getName(), diaActual, franjaHoraria, cielo, temperatura, lluvias, viento, humedad, nubosidad);
                 }
@@ -315,5 +293,13 @@ public class Main {
                 System.out.println("Datos ya existentes para " + cities[i].getName() + " en la fecha " + diaActual);
             }
         }
+    }
+
+    public static String imprimirFormateado(ArrayList<String> array){
+        String datosFormateados = "";
+        for (String dato : array) {
+            datosFormateados += dato + "\n";
+        }
+        return datosFormateados;
     }
 }

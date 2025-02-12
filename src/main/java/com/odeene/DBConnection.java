@@ -57,6 +57,9 @@ public class DBConnection {
             if (rs.next()) {
                 return rs.getInt(1) > 0; // Si la cuenta es mayor que 0, ya existen datos
             }
+        } catch (SQLException e) {
+            System.err.println("Error al verificar la existencia de datos en la BD: " + e.getMessage());
+            throw e;
         }
         return false;
     }
@@ -81,7 +84,38 @@ public class DBConnection {
                 }
             }
         }
+        catch (SQLException e) {
+            System.err.println("Error al consultar el dato: " + e.getMessage());
+            throw e;
+        }
         return resultado;
     }
 
+    /**
+     * Metodo para modificar una registro de una ciudad
+     * @param ciudad junto con dato para buscar por ese registro
+     * @param dato
+     * @param nuevoValor que modificará el dato anterior almacenado
+     * @throws SQLException
+     */
+    public static void modificarDatodePrevision(String ciudad, String dato, String franja, String nuevoValor) throws SQLException{
+        String query = "UPDATE prevision SET " + dato + " = ? WHERE ciudad = ? and franja_horaria = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, nuevoValor);
+            stmt.setString(2, ciudad);
+            stmt.setString(3, franja);
+
+            int filasAfectadas = stmt.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                System.out.println("Datos actualizados correctamente para " + ciudad);
+            } else {
+                System.out.println("No se encontró un registro para actualizar.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al actualizar el dato: " + e.getMessage());
+            throw e;
+        }
+    }
 }
