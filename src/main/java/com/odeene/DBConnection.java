@@ -48,6 +48,13 @@ public class DBConnection {
         }
     }
 
+    /**
+     * Comprobacion de que existe un registro para ese dia y esa ciudad en la BD apra evitar duplicados
+     * @param dia para filtrar la busqueda junto con ciudad
+     * @param ciudad
+     * @return
+     * @throws SQLException
+     */
     public static boolean existenDatosParaFechaYCiudad(String dia, String ciudad) throws SQLException {
         String query = "SELECT COUNT(*) FROM prevision WHERE dia = ? AND ciudad = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -64,6 +71,13 @@ public class DBConnection {
         return false;
     }
 
+    /**
+     * Se consulta la prevision, se devuelven las 3 franjas en el ArrayList resultado
+     * @param ciudad para obtener las previsiones d eesa ciudad
+     * @param dato concreto que queremos obtener de la prevision
+     * @return
+     * @throws SQLException
+     */
     public static ArrayList<String> consultaDePrevisionPorCiudadYFranja(String ciudad, String dato) throws SQLException {
         String query = "SELECT franja_horaria, "+dato+" FROM prevision WHERE ciudad = ?";
         ArrayList<String> resultado = new ArrayList<>();

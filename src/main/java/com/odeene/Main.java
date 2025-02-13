@@ -126,12 +126,26 @@ public class Main {
                                     System.out.println(fila);
                                 }
 
-                                // Preguntar si desea modificar
-                                System.out.println("Introduce el nuevo valor para " + listaDeParametros.get(parametro - 1) + " o escribe 'cancelar' para salir:");
-                                scInt.nextLine(); // Limpiar buffer
-                                String nuevoValor = sc.nextLine();
-                                System.out.println("Introduce la franja(MAÑANA, TARDE, NOCHE): ");
-                                String franja = sc.nextLine();
+                                boolean bucleSQL = true;
+                                String nuevoValor;
+                                String franja;
+
+                                do {
+                                    // Preguntar si desea modificar
+                                    System.out.println("Introduce el nuevo valor para " + listaDeParametros.get(parametro - 1) + " o escribe 'cancelar' para salir:");
+                                    scInt.nextLine(); // Limpiar buffer
+                                    nuevoValor = sc.nextLine();
+                                    System.out.println("Introduce la franja(MAÑANA, TARDE, NOCHE): ");
+                                    franja = sc.nextLine();
+
+                                    // Validar si hay palabras SQL prohibidas
+                                    if (contienePalabrasSQL(nuevoValor) || contienePalabrasSQL(franja)) {
+                                        System.out.println("¡Error! Entrada inválida detectada.");
+                                    } else {
+                                        System.out.println("Valor y franja aceptados.");
+                                        bucleSQL = false;
+                                    }
+                                }while(bucleSQL);
 
                                 if (!nuevoValor.equalsIgnoreCase("cancelar")) {
                                     DBConnection.modificarDatodePrevision(cities[ciudadInt-1].getName(), tipoDeDato[parametro-1], franja, nuevoValor);
@@ -148,6 +162,7 @@ public class Main {
                     }while(bucle2);
                     break;
                 case 3:
+                    // Salimos del bucle y del programa
                     bucle = false;
                     break;
             }
@@ -155,6 +170,11 @@ public class Main {
 
     }
 
+    /**
+     * Método para procesar los datos en formato JSON de al prevision
+     * @param jsonResponse
+     * @param weatherDatas
+     */
     private static void processForecastData(String jsonResponse, List<WeatherData> weatherDatas) {          //PROCESAR DATOS/////////////////////////////////////////////
         try {
             List<String> sky_state = new ArrayList<>();
@@ -260,6 +280,12 @@ public class Main {
         }
     }
 
+    /**
+     * Guardar los datos procesados del JSON en la BD sobre las previsiones meteorológicas de cada ciudad
+     * @param weatherDataArray Array con los elementos de la previsión
+     * @param cities Array de ciudades
+     * @throws SQLException
+     */
     public static void writeWeatherDataToDB(List<WeatherData> weatherDataArray, City[] cities) throws SQLException {
         for (int i = 0; i < cities.length; i++) {
             // Verificar si ya existen datos para la ciudad y el día actual
@@ -295,11 +321,26 @@ public class Main {
         }
     }
 
+    /**
+     * Método para mostrar la informacion con un formato facil de interpretar y ordenado
+     * @param array que contine los datos de la previsión
+     * @return
+     */
     public static String imprimirFormateado(ArrayList<String> array){
         String datosFormateados = "";
         for (String dato : array) {
             datosFormateados += dato + "\n";
         }
         return datosFormateados;
+    }
+
+    /**
+     * Método para comprobar que no haya SQL injections en las entradas por terminal al epdir datos
+     * @param texto
+     * @return
+     */
+    public static boolean contienePalabrasSQL(String texto) {
+        String textoLower = texto.toLowerCase();
+        return textoLower.contains("update") || textoLower.contains("insert") || textoLower.contains("delete");
     }
 }
