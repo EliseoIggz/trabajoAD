@@ -16,7 +16,7 @@ public class Main {
     static String diaActual;
     static int[] indices = {6, 14, 22}; //Indices para coger las franjas, representan las 7, 15, y 23 (MAÑANA,TARDE,NOCHE)
 
-    public static void main(String[] args) throws SQLException {                                                //MAIN///////////////////////////////////////
+    public static void main(String[] args) throws SQLException {
         DBConnection.conectarBD(); // Conectamos con la base
 
         List<WeatherData> weatherDatas = new ArrayList<>();
@@ -47,6 +47,7 @@ public class Main {
             new City("Ferrol", 43.4831, -8.2369)
         }; 
 
+        // Peticion a la API para obtener los datos meteorológico
         for (City city : cities) {
             // Crear y ejecutar la petición HTTP
             Request request = new Request.Builder()
@@ -72,14 +73,18 @@ public class Main {
         Scanner scInt = new Scanner(System.in);
         Scanner sc = new Scanner(System.in);
 
+        // Bucle del menú de la interfaz
         do {
             System.out.println("\nMENU");
             System.out.println("1. Guardar pronostico en la BD (Escoger al ejecutar el programa por primera vez)");
             System.out.println("2. Mostrar ciudades disponibles");
             System.out.println("3. Salir");
+
+            System.out.print("\n-> ");
             opcion = scInt.nextInt();
             switch(opcion){
                 case 1:
+                    // Método para guardar las previsiones en la BD
                     writeWeatherDataToDB(weatherDatas, cities);
                     break;
                 case 2:
@@ -91,21 +96,28 @@ public class Main {
                             num++;
                             System.out.println(num + ") " + ciudad.getName());
                         }
-                        int ciudadInt = scInt.nextInt(); //Indice para luego usar al recorrer el array de ciudades
+                        System.out.println("\n8) Volver");
+                        System.out.print("\n-> ");
+                        int ciudadInt = scInt.nextInt(); //Índice para luego usar al recorrer el array de ciudades
+                        if(ciudadInt == 8){
+                            break;
+                        }
                         System.out.println("\n1. Consultar datos");
                         System.out.println("2. Modificar datos");
-                        System.out.println("3. Volver");
+                        System.out.println("3. Volver atrás");
 
+                        System.out.print("\n-> ");
                         opcion = scInt.nextInt();
-                        //Lista de parametros del tiempo para escoger
                         switch (opcion) {
                             //Consultar
                             case 1:
                                 int contador = 0;
+                                //Lista de parametros del tiempo para escoger cual mostrar
                                 for (String dato : listaDeParametros) {
                                     contador++;
                                     System.out.println(contador + ") " + dato);
                                 }
+                                System.out.print("\n-> ");
                                 int parametro = scInt.nextInt(); // Indice del parametro
                                 ArrayList<String> resultadoConsulta = DBConnection.consultaDePrevisionPorCiudadYFranja(cities[ciudadInt-1].getName(), tipoDeDato[parametro-1]);
                                 System.out.println(imprimirFormateado(resultadoConsulta));
@@ -113,10 +125,12 @@ public class Main {
                             // Modificar
                             case 2:
                                 contador = 0;
+                                //Lista de parametros del tiempo para escoger cual modificar
                                 for (String dato : listaDeParametros) {
                                     contador++;
                                     System.out.println(contador + ") " + dato);
                                 }
+                                System.out.print("\n-> ");
                                 parametro = scInt.nextInt(); // Indice del parámetro a modificar
 
                                 // Consultar y mostrar datos actuales
@@ -131,12 +145,16 @@ public class Main {
                                 String franja;
 
                                 do {
-                                    // Preguntar si desea modificar
-                                    System.out.println("Introduce el nuevo valor para " + listaDeParametros.get(parametro - 1) + " o escribe 'cancelar' para salir:");
-                                    scInt.nextLine(); // Limpiar buffer
-                                    nuevoValor = sc.nextLine();
+                                    // Escoger la franja y el dato de la previsión a modificar
                                     System.out.println("Introduce la franja(MAÑANA, TARDE, NOCHE): ");
+                                    System.out.print("\n-> ");
                                     franja = sc.nextLine();
+                                    System.out.println("Introduce el nuevo valor para " + listaDeParametros.get(parametro - 1) + " o escribe 'cancelar' para salir:");
+                                    System.out.print("\n-> ");
+                                    scInt.nextLine(); // Limpiar buffer
+                                    System.out.print("\n-> ");
+                                    nuevoValor = sc.nextLine();
+
 
                                     // Validar si hay palabras SQL prohibidas
                                     if (contienePalabrasSQL(nuevoValor) || contienePalabrasSQL(franja)) {
@@ -154,6 +172,7 @@ public class Main {
                                     System.out.println("Modificación cancelada.");
                                 }
                                 break;
+
                             // Volver
                             case 3:
                                 bucle2 = false;
@@ -313,7 +332,15 @@ public class Main {
                             break;
                     }
                     // Insertar los datos para la ciudad y la franja horaria correspondiente
-                    DBConnection.insertarDatos(cities[i].getName(), diaActual, franjaHoraria, cielo, temperatura, lluvias, viento, humedad, nubosidad);
+                    DBConnection.insertarDatos(cities[i].getName(),
+                            diaActual,
+                            franjaHoraria,
+                            cielo,
+                            temperatura,
+                            lluvias,
+                            viento,
+                            humedad,
+                            nubosidad);
                 }
             } else {
                 System.out.println("Datos ya existentes para " + cities[i].getName() + " en la fecha " + diaActual);
